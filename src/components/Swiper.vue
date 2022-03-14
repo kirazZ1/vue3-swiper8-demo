@@ -47,6 +47,7 @@ import "swiper/components/pagination/pagination.less"
 SwiperCore.use([Autoplay, Pagination, Navigation]);
 
 const props = defineProps({
+
     imgs: {
         type: Array,
         default() {
@@ -61,20 +62,9 @@ const props = defineProps({
     },
 });
 
-//将props中数据注入windows（主要是因为自定义分页器的渲染器访问不到vue组件实例，这是折中的办法）
-//如果一个页面使用多个轮播图组件，这样使用会有问题
-window["swiper_data"] = props.imgs
-
-//组件销毁时及时清理掉
-onUnmounted(() => {
-    delete window["swiper_data"]
-})
-
-
-
 const paginationRender = function (swiper, current, total) {
-    const { desc, redirectTo } = window["swiper_data"][current - 1]
-
+    const { desc, redirectTo } = props.imgs[current - 1]
+    console.log(props.imgs)
     return `<div class="custom-pagination" style="
                 display:flex;
                 justify-content:space-between;
@@ -92,8 +82,14 @@ const paginationRender = function (swiper, current, total) {
                         text-align:left;
                     ">${desc}</a>
                 </div>
-                <div style="margin:15px;color:white">
-                    第${current}页
+                <div style="margin:15px;color:white;display:flex;width:50px;justify-content:space-around;align-items: center;">
+                    ${
+                        props.imgs.map((item,index) => {
+                            return index === current - 1 ? 
+                            `<div style="background-color:#007aff;width:10px;height:10px"></div>` :
+                            `<div style="background-color:white;width:10px;height:10px"></div>`
+                        }).join("")
+                    }
                 </div>
           </div>`;
 }
@@ -104,17 +100,9 @@ const swiper_options = reactive({
         disableOnInteraction: false, // 鼠标滑动后继续自动播放
         delay: 4000, // 4秒切换一次
     },
+    autoplay:false,
     speed: 500, //切换过渡速度
     loop: true,
-    //   slidesPerView: "auto", //解决最后一张切换到第一张中间的空白
-    //   spaceBetween: 0,
-    //   coverflowEffect: {
-    //     rotate: 0, //slide做3d旋转时Y轴的旋转角度。默认50。
-    //     stretch: 0, //每个slide之间的拉伸值（距离），越大slide靠得越紧。 默认0。
-    //     depth: 100, //slide的位置深度。值越大z轴距离越远，看起来越小。 默认100。
-    //     modifier: 1, //depth和rotate和stretch的倍率，相当于            depth*modifier、rotate*modifier、stretch*modifier，值越大这三个参数的效果越明显。默认1。
-    //     // slideShadows: false, //开启slide阴影。默认 true。
-    //   },
     pagination: {
         el: ".swiper-pagination",
         type: 'custom',
